@@ -2,12 +2,19 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/refandas/scalable-web-service/assignment-2/models"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+}
 
 func main() {
 	r := gin.Default()
@@ -23,9 +30,16 @@ func main() {
 }
 
 func createOrder(c *gin.Context) {
-	var order models.Order
+	var order models.CreateOrderInput
 	if err := c.ShouldBindJSON(&order); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "invalid order payload",
+		})
+		return
+	}
+
+	if err := validate.Struct(order); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "invalid order payload",
 		})
 		return
@@ -33,7 +47,7 @@ func createOrder(c *gin.Context) {
 
 	err := order.CreateOrder()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
 		})
 		return
@@ -45,7 +59,7 @@ func createOrder(c *gin.Context) {
 func getOrder(c *gin.Context) {
 	orders, err := models.GetOrders()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
 		})
 		return
@@ -55,22 +69,29 @@ func getOrder(c *gin.Context) {
 }
 
 func updateOrder(c *gin.Context) {
-	orderId := c.Param("orderId")
-	var order models.Order
+	orderIdPayload := c.Param("orderId")
+	var order models.UpdateOrderInput
 	if err := c.ShouldBindJSON(&order); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "invalid order payload",
 		})
 		return
 	}
 
-	order.ID, _ = strconv.ParseInt(orderId, 10, 64)
+	if err := validate.Struct(order); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "invalid order payload",
+		})
+		return
+	}
 
-	updatedOrder, err := order.UpdateOrder()
+	orderId, _ := strconv.ParseInt(orderIdPayload, 10, 64)
+
+	updatedOrder, err := order.UpdateOrder(orderId)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-				"error": "Order is not found",
+				"error": "order is not found",
 			})
 			return
 		}
@@ -85,9 +106,9 @@ func updateOrder(c *gin.Context) {
 
 func deleteOrder(c *gin.Context) {
 	orderId, err := strconv.ParseInt(c.Param("orderId"), 10, 64)
-	if err != nil {
+	if err != nil || orderId <= 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid order ID",
+			"error": "invalid order ID",
 		})
 		return
 	}

@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: Orders API
+  description: API for manage items and orders
+  version: 1.0.0
+
+servers:
+  - url: 'http://localhost:8000/api/v1'
+    description: Local development server
+
+tags:
+  - name: Orders
+    description: Operations about orders
+
+paths:
+  /orders:
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+    get:
+      tags:
+        - Orders
+      summary: Get all orders
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+  /orders/{orderId}:
+    put:
+      tags:
+        - Orders
+      summary: Update an existing order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+    delete:
+      tags:
+        - Orders
+      summary: Delete an existing order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+components:
+  schemas:
+    OkResponse:
+      type: string
+      example: "OK"
+
+    BadRequestResponse:
+      type: string
+      example: "Bad request"
+
+    NotFoundResponse:
+      type: string
+      example: "Item not found"
+
+    Item:
+      type: object
+      properties:
+        item_code:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: integer
+      example:
+        item_code: "item1"
+        description: "Indomie rasa ayam bawang"
+        quantity: 2
+
+    OrderRequest:
+      type: object
+      properties:
+        ordered_at:
+          type: string
+          format: date-time
+        customer_name:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+      example:
+        ordered_at: "2021-10-06T16:53:27.675931+07:00"
+        customer_name: "Mawar"
+        items:
+          - item_code: "item1"
+            description: "Indomie rasa ayam bawang"
+            quantity: 2
+          - item_code: "item2"
+            description: "Teh Botol Sosro"
+            quantity: 3
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        ordered_at:
+          type: string
+          format: date-time
+        customer_name:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+      example:
+        id: 1
+        ordered_at: "2021-10-06T16:53:27.675931+07:00"
+        customer_name: "Mawar"
+        items:
+          - item_code: "item1"
+            description: "Indomie rasa ayam bawang"
+            quantity: 2
+          - item_code: "item2"
+            description: "Teh Botol Sosro"
+            quantity: 3

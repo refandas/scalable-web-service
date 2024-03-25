@@ -10,6 +10,7 @@ import (
 	"github.com/refandas/scalable-web-service/mygram/service"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -82,7 +83,12 @@ func main() {
 		socialMedias.DELETE("/:socialMediaId", socialMediaHandler.DeleteSocialMedia)
 	}
 
-	err := r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	err := r.Run(":" + port)
 	if err != nil {
 		panic(err)
 	}

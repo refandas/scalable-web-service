@@ -17,3 +17,10 @@ To run the program, use the following command:
 ```bash
 go run main.go
 ```
+
+## Accessing the Application
+
+You can access the application at http://localhost:8080
+
+The application is also hosted on Railway. You can access the hosted application 
+at https://refanda-mygram.up.railway.app

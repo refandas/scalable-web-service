@@ -25,8 +25,5 @@ WORKDIR /app
 # Copy the binary from the builder stage to the /app directory in the new stage
 COPY --from=builder /go/bin/app /app
 
-# Expose port 8080
-EXPOSE 8080
-
 # Command to run the application
 CMD ["./app"]
